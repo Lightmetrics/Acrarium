@@ -172,3 +172,7 @@ tasks.getByName<nu.studer.gradle.jooq.JooqGenerate>("generateJooq") {
     inputs.file("$projectDir/$changelogPath")
     allInputsDeclared.set(true)
 }
+
+tasks.named("spotlessTypescript") {
+    dependsOn("vaadinPrepareFrontend")
+}
