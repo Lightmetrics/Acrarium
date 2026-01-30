@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Lukas Morawietz (https://github.com/F43nd1r)
+ * (C) Copyright 2023-2026 Lukas Morawietz (https://github.com/F43nd1r)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -339,92 +339,181 @@ class AdminAppTabTest(
         }
     }
 
+    // @Nested
+    // inner class VersionAppAdminCardTest(
+    //     @Autowired private val versionRepository: VersionRepository,
+    // ) {
+    //     @Test
+    //     fun `should not show edit or delete with VIEW permission`() {
+    //         val card = _get<VersionAppAdminCard>()
+    //         val grid = card._get<Grid<*>>()
+
+    //         grid._expectNone<LocalizedColumn<*>> { rendererIs(ButtonRenderer::class) }
+    //     }
+
+    //     @Test
+    //     fun `should show edit and delete with EDIT permission`() {
+    //         withAuth(Permission(appId, Permission.Level.EDIT)) {
+    //             val card = _get<VersionAppAdminCard>()
+    //             val grid = card._get<Grid<*>>()
+
+    //             grid._expect<LocalizedColumn<*>>(count = 2) { rendererIs(ButtonRenderer::class) }
+    //         }
+    //     }
+
+    //     @Test
+    //     fun `should be able to create version`() {
+    //         withAuth(Permission(appId, Permission.Level.EDIT)) {
+    //             val card = _get<VersionAppAdminCard>()
+    //             card._get<Translatable<Button>> { captionId = Messages.NEW_VERSION }.content.click()
+
+    //             _get<Translatable<NumberField>> { captionId = Messages.VERSION_CODE }.content._value = 1.0
+    //             _get<Translatable<TextField>> { captionId = Messages.VERSION_FLAVOR }.content._value = "flavor"
+    //             _get<Translatable<TextField>> { captionId = Messages.VERSION_NAME }.content._value = "name"
+    //             _get<Translatable<UploadField>> { captionId = Messages.MAPPING_FILE }.content._get<Upload>()._upload("mappings.txt", file = "mappings".toByteArray())
+
+    //             _get<Translatable<Button>> { captionId = Messages.CREATE }.content.click()
+
+    //             expectThat(versionRepository.find(appId, 1, "flavor")).isEqualTo(
+    //                 Version(code = 1, flavor = "flavor", name = "name", appId = appId, mappings = "mappings")
+    //             )
+    //         }
+    //     }
+
+    //     @Test
+    //     fun `should be able to edit version`() {
+    //         val versionKey = testDataBuilder.createVersion(appId)
+    //         withAuth(Permission(appId, Permission.Level.EDIT)) {
+    //             val card = _get<VersionAppAdminCard>()
+    //             val grid = card._get<Grid<*>>()
+    //             val version = versionRepository.find(appId, versionKey)!!
+
+    //             grid._clickRenderer(0, "edit")
+
+    //             val versionCode = _get<Translatable<NumberField>> { captionId = Messages.VERSION_CODE }.content
+    //             expectThat(versionCode._value).isEqualTo(version.code.toDouble())
+    //             versionCode._expectDisabled()
+    //             val versionFlavor = _get<Translatable<TextField>> { captionId = Messages.VERSION_FLAVOR }.content
+    //             expectThat(versionFlavor._value).isEqualTo(version.flavor)
+    //             versionFlavor._expectDisabled()
+    //             val versionName = _get<Translatable<TextField>> { captionId = Messages.VERSION_NAME }.content
+    //             expectThat(versionName._value).isEqualTo(version.name)
+    //             versionName._value = "name"
+    //             val mappings = _get<Translatable<UploadField>> { captionId = Messages.MAPPING_FILE }.content
+    //             expectThat(mappings._value).isNull()
+    //             mappings._get<Upload>()._upload("mappings.txt", file = "mappings".toByteArray())
+
+    //             _get<VersionEditorDialog>()._get<Translatable<Button>> { captionId = Messages.SAVE }.content.click()
+
+    //             expectThat(versionRepository.find(appId, versionKey)).isEqualTo(
+    //                 Version(code = versionKey.code, flavor = versionKey.flavor, name = "name", appId = appId, mappings = "mappings")
+    //             )
+    //         }
+    //     }
+
+    //     @Test
+    //     fun `should be able to delete version`() {
+    //         val versionKey = testDataBuilder.createVersion(appId)
+    //         withAuth(Permission(appId, Permission.Level.EDIT)) {
+    //             val card = _get<VersionAppAdminCard>()
+    //             val grid = card._get<Grid<*>>()
+
+    //             grid._clickRenderer(0, "delete")
+    //             _get<Translatable<Button>> { captionId = Messages.CONFIRM }.content.click()
+
+    //             expectThat(versionRepository.find(appId, versionKey)).isNull()
+    //         }
+    //     }
+    // }
     @Nested
-    inner class VersionAppAdminCardTest(
-        @Autowired private val versionRepository: VersionRepository,
-    ) {
-        @Test
-        fun `should not show edit or delete with VIEW permission`() {
+inner class VersionAppAdminCardTest(
+    @Autowired private val versionRepository: VersionRepository,
+) {
+    @Test
+    fun `should not show edit or delete with VIEW permission`() {
+        val card = _get<VersionAppAdminCard>()
+        val grid = card._get<Grid<*>>()
+
+        grid._expectNone<LocalizedColumn<*>> { rendererIs(ButtonRenderer::class) }
+    }
+
+    @Test
+    fun `should show edit and delete with EDIT permission`() {
+        withAuth(Permission(appId, Permission.Level.EDIT)) {
             val card = _get<VersionAppAdminCard>()
             val grid = card._get<Grid<*>>()
 
-            grid._expectNone<LocalizedColumn<*>> { rendererIs(ButtonRenderer::class) }
-        }
-
-        @Test
-        fun `should show edit and delete with EDIT permission`() {
-            withAuth(Permission(appId, Permission.Level.EDIT)) {
-                val card = _get<VersionAppAdminCard>()
-                val grid = card._get<Grid<*>>()
-
-                grid._expect<LocalizedColumn<*>>(count = 2) { rendererIs(ButtonRenderer::class) }
-            }
-        }
-
-        @Test
-        fun `should be able to create version`() {
-            withAuth(Permission(appId, Permission.Level.EDIT)) {
-                val card = _get<VersionAppAdminCard>()
-                card._get<Translatable<Button>> { captionId = Messages.NEW_VERSION }.content.click()
-
-                _get<Translatable<NumberField>> { captionId = Messages.VERSION_CODE }.content._value = 1.0
-                _get<Translatable<TextField>> { captionId = Messages.VERSION_FLAVOR }.content._value = "flavor"
-                _get<Translatable<TextField>> { captionId = Messages.VERSION_NAME }.content._value = "name"
-                _get<Translatable<UploadField>> { captionId = Messages.MAPPING_FILE }.content._get<Upload>()._upload("mappings.txt", file = "mappings".toByteArray())
-
-                _get<Translatable<Button>> { captionId = Messages.CREATE }.content.click()
-
-                expectThat(versionRepository.find(appId, 1, "flavor")).isEqualTo(
-                    Version(code = 1, flavor = "flavor", name = "name", appId = appId, mappings = "mappings")
-                )
-            }
-        }
-
-        @Test
-        fun `should be able to edit version`() {
-            val versionKey = testDataBuilder.createVersion(appId)
-            withAuth(Permission(appId, Permission.Level.EDIT)) {
-                val card = _get<VersionAppAdminCard>()
-                val grid = card._get<Grid<*>>()
-                val version = versionRepository.find(appId, versionKey)!!
-
-                grid._clickRenderer(0, "edit")
-
-                val versionCode = _get<Translatable<NumberField>> { captionId = Messages.VERSION_CODE }.content
-                expectThat(versionCode._value).isEqualTo(version.code.toDouble())
-                versionCode._expectDisabled()
-                val versionFlavor = _get<Translatable<TextField>> { captionId = Messages.VERSION_FLAVOR }.content
-                expectThat(versionFlavor._value).isEqualTo(version.flavor)
-                versionFlavor._expectDisabled()
-                val versionName = _get<Translatable<TextField>> { captionId = Messages.VERSION_NAME }.content
-                expectThat(versionName._value).isEqualTo(version.name)
-                versionName._value = "name"
-                val mappings = _get<Translatable<UploadField>> { captionId = Messages.MAPPING_FILE }.content
-                expectThat(mappings._value).isNull()
-                mappings._get<Upload>()._upload("mappings.txt", file = "mappings".toByteArray())
-
-                _get<VersionEditorDialog>()._get<Translatable<Button>> { captionId = Messages.SAVE }.content.click()
-
-                expectThat(versionRepository.find(appId, versionKey)).isEqualTo(
-                    Version(code = versionKey.code, flavor = versionKey.flavor, name = "name", appId = appId, mappings = "mappings")
-                )
-            }
-        }
-
-        @Test
-        fun `should be able to delete version`() {
-            val versionKey = testDataBuilder.createVersion(appId)
-            withAuth(Permission(appId, Permission.Level.EDIT)) {
-                val card = _get<VersionAppAdminCard>()
-                val grid = card._get<Grid<*>>()
-
-                grid._clickRenderer(0, "delete")
-                _get<Translatable<Button>> { captionId = Messages.CONFIRM }.content.click()
-
-                expectThat(versionRepository.find(appId, versionKey)).isNull()
-            }
+            grid._expect<LocalizedColumn<*>>(count = 2) { rendererIs(ButtonRenderer::class) }
         }
     }
+
+    @Test
+    fun `should be able to create version`() {
+        withAuth(Permission(appId, Permission.Level.EDIT)) {
+            val card = _get<VersionAppAdminCard>()
+            card._get<Translatable<Button>> { captionId = Messages.NEW_VERSION }.content.click()
+
+            _get<Translatable<NumberField>> { captionId = Messages.VERSION_CODE }.content._value = 1.0
+            _get<ComboBox<String>> { label = Messages.VERSION_FLAVOR }.value = "testflavor"
+            _get<Translatable<TextField>> { captionId = Messages.VERSION_NAME }.content._value = "name"
+            _get<Translatable<UploadField>> { captionId = Messages.MAPPING_FILE }.content._get<Upload>()._upload("mappings.txt", file = "mappings".toByteArray())
+
+            _get<Translatable<Button>> { captionId = Messages.CREATE }.content.click()
+
+            expectThat(versionRepository.find(appId, 1, "testflavor")).isEqualTo(
+                Version(code = 1, flavor = "testflavor", name = "name", appId = appId, mappings = "mappings")
+            )
+        }
+    }
+
+    @Test
+    fun `should be able to edit version`() {
+        val versionKey = testDataBuilder.createVersion(appId)
+        withAuth(Permission(appId, Permission.Level.EDIT)) {
+            val card = _get<VersionAppAdminCard>()
+            val grid = card._get<Grid<*>>()
+            val version = versionRepository.find(appId, versionKey)!!
+
+            grid._clickRenderer(0, "edit")
+
+            val versionCode = _get<Translatable<NumberField>> { captionId = Messages.VERSION_CODE }.content
+            expectThat(versionCode._value).isEqualTo(version.code.toDouble())
+            versionCode._expectDisabled()
+            
+            val versionFlavor = _get<Translatable<ComboBox<String>>> { captionId = Messages.VERSION_FLAVOR }.content
+            expectThat(versionFlavor.value).isEqualTo(version.flavor)
+            versionFlavor._expectDisabled()
+            
+            val versionName = _get<Translatable<TextField>> { captionId = Messages.VERSION_NAME }.content
+            expectThat(versionName._value).isEqualTo(version.name)
+            versionName._value = "name"
+            
+            val mappings = _get<Translatable<UploadField>> { captionId = Messages.MAPPING_FILE }.content
+            expectThat(mappings._value).isNull()
+            mappings._get<Upload>()._upload("mappings.txt", file = "mappings".toByteArray())
+
+            _get<VersionEditorDialog>()._get<Translatable<Button>> { captionId = Messages.SAVE }.content.click()
+
+            expectThat(versionRepository.find(appId, versionKey)).isEqualTo(
+                Version(code = versionKey.code, flavor = versionKey.flavor, name = "name", appId = appId, mappings = "mappings")
+            )
+        }
+    }
+
+    @Test
+    fun `should be able to delete version`() {
+        val versionKey = testDataBuilder.createVersion(appId)
+        withAuth(Permission(appId, Permission.Level.EDIT)) {
+            val card = _get<VersionAppAdminCard>()
+            val grid = card._get<Grid<*>>()
+
+            grid._clickRenderer(0, "delete")
+            _get<Translatable<Button>> { captionId = Messages.CONFIRM }.content.click()
+
+            expectThat(versionRepository.find(appId, versionKey)).isNull()
+        }
+    }
+}
 }
 
 private fun Component.nextSibling(): Component? {

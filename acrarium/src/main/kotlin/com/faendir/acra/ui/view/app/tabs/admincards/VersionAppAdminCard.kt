@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020-2023 Lukas Morawietz (https://github.com/F43nd1r)
+ * (C) Copyright 2020-2026 Lukas Morawietz (https://github.com/F43nd1r)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.faendir.acra.navigation.RouteParams
 import com.faendir.acra.navigation.View
 import com.faendir.acra.persistence.user.Permission
 import com.faendir.acra.persistence.version.Version
+import com.faendir.acra.persistence.report.ReportRepository
+import com.faendir.acra.domain.FlavorDetector
 import com.faendir.acra.persistence.version.VersionRepository
 import com.faendir.acra.security.SecurityUtils
 import com.faendir.acra.ui.component.AdminCard
@@ -38,6 +40,8 @@ import com.vaadin.flow.data.renderer.IconRenderer
 @View
 class VersionAppAdminCard(
     private val versionRepository: VersionRepository,
+    private val reportRepository: ReportRepository,
+    private val flavorDetector: FlavorDetector,
     routeParams: RouteParams,
 ) : AdminCard() {
     private val appId = routeParams.appId()
@@ -58,12 +62,25 @@ class VersionAppAdminCard(
                     setCaption(Messages.VERSION)
                     flexGrow = 1
                 }
+                column({ it.flavor }) {
+                    setCaption(Messages.VERSION_FLAVOR)
+                    flexGrow = 1
+                }
                 column(IconRenderer({ Icon(if (it.mappings != null) VaadinIcon.CHECK else VaadinIcon.CLOSE) }, { "" })) {
                     setSortable(Version.Sort.MAPPINGS)
                     setCaption(Messages.PROGUARD_MAPPINGS)
                 }
                 if (SecurityUtils.hasPermission(appId, Permission.Level.EDIT)) {
-                    column(ButtonRenderer(VaadinIcon.EDIT) { VersionEditorDialog(versionRepository, appId, { dataProvider.refreshAll() }, it).open() }) {
+                    column(ButtonRenderer(VaadinIcon.EDIT) { version ->
+                        VersionEditorDialog(
+                            versionRepository,
+                            reportRepository,
+                            flavorDetector,
+                            appId,
+                            { dataProvider.refreshAll() },
+                            version
+                        ).open()
+                    }) {
                         key = "edit"
                         width = "50px"
                         isAutoWidth = false
@@ -82,7 +99,16 @@ class VersionAppAdminCard(
                         isAutoWidth = false
                     }
                     appendFooterRow().getCell(columns[0]).component =
-                        Translatable.createButton(Messages.NEW_VERSION) { VersionEditorDialog(versionRepository, appId, { dataProvider.refreshAll() }).open() }
+                        Translatable.createButton(Messages.NEW_VERSION) { 
+                            VersionEditorDialog(
+                                versionRepository,
+                                reportRepository,
+                                flavorDetector,
+                                appId,
+                                { dataProvider.refreshAll() },
+                                null
+                            ).open()
+                        }
                 }
             }
         }
