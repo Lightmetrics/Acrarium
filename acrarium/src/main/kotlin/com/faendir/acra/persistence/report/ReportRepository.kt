@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022-2024 Lukas Morawietz (https://github.com/F43nd1r)
+ * (C) Copyright 2022-2026 Lukas Morawietz (https://github.com/F43nd1r)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,20 @@ class ReportRepository(
 
     fun loadAttachment(reportId: String, filename: String) =
         jooq.select(ATTACHMENT.CONTENT).from(ATTACHMENT).where(ATTACHMENT.REPORT_ID.eq(reportId).and(ATTACHMENT.FILENAME.eq(filename))).fetchValue()
+
+    fun getPhoneModelsForVersion(appId:AppId,versionCode:Int):List<String>{
+        return jooq.selectDistinct(REPORT.PHONE_MODEL)
+                    .from(REPORT)
+                    .where(
+                        REPORT.APP_ID.eq(appId)
+                        .and(REPORT.VERSION_CODE.eq(versionCode))
+                        .and(REPORT.PHONE_MODEL.isNotNull)
+                    )
+                    .fetch()
+                    .mapNotNull {it.value1()}
+                    .filter {it.isNotBlank() }
+                    .sorted()
+    }
 
     @PreAuthorize("hasViewPermission(#appId)")
     fun listIds(appId: AppId, after: Instant?, before: Instant?): List<String> =
