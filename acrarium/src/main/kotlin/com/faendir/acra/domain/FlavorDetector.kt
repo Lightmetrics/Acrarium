@@ -14,20 +14,39 @@
  * limitations under the License.
  */
 package com.faendir.acra.domain
+
 import org.springframework.stereotype.Component
 
 @Component
 class FlavorDetector {
+
     fun detectFlavor(phoneModel: String): String {
-        return phoneModel
+        val normalized = phoneModel
             .lowercase()
             .trim()
-            .replace(" ", "-")
-    }
+            .replace("_", "-")
 
+        return when {
+            normalized.startsWith("jimi-jc450") ->
+                "jimimultichannelcam"
+
+            normalized.startsWith("jimi") ->
+                "jimi"
+
+            normalized.startsWith("mitac") ->
+                "mitac"
+
+            normalized.startsWith("stsunlab") ->
+                "stsunlab"
+
+            else ->
+                "default"
+        }
+    }
 
     fun suggestFlavors(phoneModels: List<String>): List<String> {
         val detected = phoneModels
+            .filter { it.isNotBlank() }
             .map { detectFlavor(it) }
             .distinct()
             .sorted()
@@ -38,3 +57,6 @@ class FlavorDetector {
         }
     }
 }
+
+
+
