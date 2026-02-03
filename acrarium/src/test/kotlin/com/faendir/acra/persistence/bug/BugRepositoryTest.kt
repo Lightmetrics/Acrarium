@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022-2023 Lukas Morawietz (https://github.com/F43nd1r)
+ * (C) Copyright 2022-2026 Lukas Morawietz (https://github.com/F43nd1r)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,7 +195,20 @@ class BugRepositoryTest(
             testDataBuilder.createReport(appId, id, identifier, version, now)
 
             expectThat(bugRepository.findId(identifier)).isEqualTo(id)
-            expectThat(bugRepository.find(id)).isEqualTo(Bug(id, "title", appId, 1, now, null, version, 1))
+            expectThat(bugRepository.find(id)).isEqualTo(Bug(
+    id = id,
+    title = "title",
+    appId = appId,
+    reportCount = 1,
+    latestReport = now,
+    solvedVersionKey = null,
+    latestVersionKey = version,
+    affectedInstallations = 1,
+    affectedVersions = 1,
+    mostAffectedVersionKey = version,
+    mostAffectedVersionCount = 1
+)
+)
         }
     }
 
@@ -419,8 +432,32 @@ class BugRepositoryTest(
 
             expectThat(provider.size(emptySet())).isEqualTo(2)
             expectThat(provider.fetch(emptySet(), emptyList(), 0, 10).toList()).containsExactlyInAnyOrder(
-                BugStats(bug1, "bug1", 2, VersionKey(2, "two"), d1, null, 2),
-                BugStats(bug2, "bug2", 1, VersionKey(1, "one"), d3, v2, 1)
+                BugStats(
+                        id = bug1,
+                        title = "bug1",
+                        reportCount = 2,
+                        latestVersionKey = VersionKey(2, "two"),
+                        latestReport = d1,
+                        solvedVersionKey = null,
+                        affectedInstallations = 2,
+                        affectedVersions = 2,
+                        mostAffectedVersionKey = VersionKey(2, "two"),
+                        mostAffectedVersionCount = 1
+                        )
+                            ,
+                BugStats(
+                        id = bug2,
+                        title = "bug2",
+                        reportCount = 1,
+                        latestVersionKey = VersionKey(1, "one"),
+                        latestReport = d3,
+                        solvedVersionKey = v2,
+                        affectedInstallations = 1,
+                        affectedVersions = 1,
+                        mostAffectedVersionKey = VersionKey(1, "one"),
+                        mostAffectedVersionCount = 1
+                    )
+
             )
         }
 

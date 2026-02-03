@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020-2023 Lukas Morawietz (https://github.com/F43nd1r)
+ * (C) Copyright 2020-2026 Lukas Morawietz (https://github.com/F43nd1r)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,23 @@ class BugAppTab(
                 setSortable(BugStats.Sort.AFFECTED_INSTALLATIONS)
                 setCaption(Messages.AFFECTED_INSTALLATIONS)
             }
+            column({ it.affectedVersions }) {
+            setSortable(BugStats.Sort.AFFECTED_VERSIONS)
+            setCaption(Messages.AFFECTED_VERSIONS)
+            flexGrow = 0
+            width = "80px"
+            }
+    
+            column({ bug ->
+                    bug.mostAffectedVersionKey?.let { versionKey ->
+                    val versionName = versionRepository.find(appId, versionKey)?.name ?: "${versionKey.code}"
+                    "$versionName (${bug.mostAffectedVersionCount})"
+                } ?: "-"
+            }) {
+        setSortable(BugStats.Sort.MOST_AFFECTED_VERSION_COUNT)
+        setCaption(Messages.MOST_AFFECTED_VERSION)
+        flexGrow = 1
+    }
             column({ it.title }) {
                 setSortable(BugStats.Sort.TITLE)
                 setFilterableContains({ BugStats.Filter.TITLE(it) }, Messages.TITLE)
