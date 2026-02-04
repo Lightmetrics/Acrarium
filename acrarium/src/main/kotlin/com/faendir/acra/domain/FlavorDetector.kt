@@ -39,7 +39,7 @@ class FlavorDetector {
             normalized.startsWith("stsunlab") ->
                 "stsunlab"
 
-            normalized.startwith("micronet") ->
+            normalized.startsWith("micronet") ->
                 "micronet"
 
             else ->
