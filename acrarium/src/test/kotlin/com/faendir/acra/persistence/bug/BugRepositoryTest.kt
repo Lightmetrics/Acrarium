@@ -206,7 +206,10 @@ class BugRepositoryTest(
     affectedInstallations = 1,
     affectedVersions = 1,
     mostAffectedVersionKey = version,
-    mostAffectedVersionCount = 1
+    mostAffectedVersionCount = 1,
+    affectedEngines = 0,
+    mostAffectedEngine = null,
+    mostAffectedEngineCount = 0,
 )
 )
         }
@@ -442,7 +445,10 @@ class BugRepositoryTest(
                         affectedInstallations = 2,
                         affectedVersions = 2,
                         mostAffectedVersionKey = VersionKey(2, "two"),
-                        mostAffectedVersionCount = 1
+                        mostAffectedVersionCount = 1,
+                        affectedEngines = 0,
+    mostAffectedEngine = null,
+    mostAffectedEngineCount = 0,
                         )
                             ,
                 BugStats(
@@ -455,7 +461,10 @@ class BugRepositoryTest(
                         affectedInstallations = 1,
                         affectedVersions = 1,
                         mostAffectedVersionKey = VersionKey(1, "one"),
-                        mostAffectedVersionCount = 1
+                        mostAffectedVersionCount = 1,
+                        affectedEngines = 0,
+    mostAffectedEngine = null,
+    mostAffectedEngineCount = 0,
                     )
 
             )

@@ -171,12 +171,15 @@ class BugRepository(
                 BUG.AFFECTED_VERSIONS,                   
                 BUG.MOST_AFFECTED_VERSION_CODE,          
                 BUG.MOST_AFFECTED_VERSION_FLAVOR,        
-                BUG.MOST_AFFECTED_VERSION_COUNT,  
+                BUG.MOST_AFFECTED_VERSION_COUNT,
+                BUG.AFFECTED_ENGINES,
+                BUG.MOST_AFFECTED_ENGINE,
+                BUG.MOST_AFFECTED_ENGINE_COUNT,  
             )
                 .from(BUG)
                 .where(BUG.APP_ID.eq(appId).and(filters))
                 .orderBy(sort.asOrderFields())
-                .offset(offset)
+                .offset(offset) 
                 .limit(limit)
                 .fetchListInto<BugStats>()
                 .stream()

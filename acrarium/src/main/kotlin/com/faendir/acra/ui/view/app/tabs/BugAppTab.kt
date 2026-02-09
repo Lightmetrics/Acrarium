@@ -91,6 +91,24 @@ class BugAppTab(
         setCaption(Messages.MOST_AFFECTED_VERSION)
         flexGrow = 1
     }
+    if (appId.value.toInt() == 5) {
+    column({ it.affectedEngines }) {
+        setSortable(BugStats.Sort.AFFECTED_ENGINES)
+        setCaption(Messages.AFFECTED_ENGINES)
+        flexGrow = 0
+        width = "100px"
+    }
+
+    column({ bug ->
+        bug.mostAffectedEngine?.let { engine ->
+            "$engine (${bug.mostAffectedEngineCount})"
+        } ?: "-"
+    }) {
+        setSortable(BugStats.Sort.MOST_AFFECTED_ENGINE_COUNT)
+        setCaption(Messages.MOST_AFFECTED_ENGINE)
+        flexGrow = 1
+    }
+}
             column({ it.title }) {
                 setSortable(BugStats.Sort.TITLE)
                 setFilterableContains({ BugStats.Filter.TITLE(it) }, Messages.TITLE)
