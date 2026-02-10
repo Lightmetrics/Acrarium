@@ -58,71 +58,91 @@ class BugAppTab(
             column({ it.reportCount }) {
                 setSortable(BugStats.Sort.REPORT_COUNT)
                 setCaption(Messages.REPORTS)
+                flexGrow = 0
+                width = "100px"
             }
-            column(InstantRenderer { it.latestReport }) {
-                setSortable(BugStats.Sort.LATEST_REPORT)
-                setCaption(Messages.LATEST_REPORT)
-                sort(GridSortOrder.desc(this).build())
+            
+            column({ it.title }) {
+                setSortable(BugStats.Sort.TITLE)
+                setFilterableContains({ BugStats.Filter.TITLE(it) }, Messages.TITLE)
+                setCaption(Messages.TITLE)
+                isAutoWidth = true
             }
+            
             val versions = versionRepository.getVersionNames(appId)
             column(VersionRenderer(versions) { it.latestVersionKey }) {
                 setSortable(BugStats.Sort.LATEST_VERSION_CODE)
                 setFilterableIs(versions, { it.name }, { BugStats.Filter.LATEST_VERSION(it.code, it.flavor) }, Messages.APP_VERSION)
                 setCaption(Messages.LATEST_VERSION)
+                flexGrow = 0
+                width = "150px"
             }
+            
             column({ it.affectedInstallations }) {
                 setSortable(BugStats.Sort.AFFECTED_INSTALLATIONS)
                 setCaption(Messages.AFFECTED_INSTALLATIONS)
+                flexGrow = 0
+                width = "180px"
             }
+            
             column({ it.affectedVersions }) {
-            setSortable(BugStats.Sort.AFFECTED_VERSIONS)
-            setCaption(Messages.AFFECTED_VERSIONS)
-            flexGrow = 0
-            width = "80px"
+                setSortable(BugStats.Sort.AFFECTED_VERSIONS)
+                setCaption(Messages.AFFECTED_VERSIONS)
+                flexGrow = 0
+                width = "150px"
             }
-    
+            
             column({ bug ->
-                    bug.mostAffectedVersionKey?.let { versionKey ->
+                bug.mostAffectedVersionKey?.let { versionKey ->
                     val versionName = versionRepository.find(appId, versionKey)?.name ?: "${versionKey.code}"
                     "$versionName (${bug.mostAffectedVersionCount})"
                 } ?: "-"
             }) {
-        setSortable(BugStats.Sort.MOST_AFFECTED_VERSION_COUNT)
-        setCaption(Messages.MOST_AFFECTED_VERSION)
-        flexGrow = 1
-    }
-    if (appId.value.toInt() == 5) {
-    column({ it.affectedEngines }) {
-        setSortable(BugStats.Sort.AFFECTED_ENGINES)
-        setCaption(Messages.AFFECTED_ENGINES)
-        flexGrow = 0
-        width = "100px"
-    }
-
-    column({ bug ->
-        bug.mostAffectedEngine?.let { engine ->
-            "$engine (${bug.mostAffectedEngineCount})"
-        } ?: "-"
-    }) {
-        setSortable(BugStats.Sort.MOST_AFFECTED_ENGINE_COUNT)
-        setCaption(Messages.MOST_AFFECTED_ENGINE)
-        flexGrow = 1
-    }
-}
-            column({ it.title }) {
-                setSortable(BugStats.Sort.TITLE)
-                setFilterableContains({ BugStats.Filter.TITLE(it) }, Messages.TITLE)
-                setCaption(Messages.TITLE)
-                isAutoWidth = false
-                flexGrow = 1
+                setSortable(BugStats.Sort.MOST_AFFECTED_VERSION_COUNT)
+                setCaption(Messages.MOST_AFFECTED_VERSION)
+                flexGrow = 0
+                width = "200px"
             }
+            
+            if (appId.value.toInt() == 5) {
+                column({ it.affectedEngines }) {
+                    setSortable(BugStats.Sort.AFFECTED_ENGINES)
+                    setCaption(Messages.AFFECTED_ENGINES)
+                    flexGrow = 0
+                    width = "130px"
+                }
+                
+                column({ bug ->
+                    bug.mostAffectedEngine?.let { engine ->
+                        "$engine (${bug.mostAffectedEngineCount})"
+                    } ?: "-"
+                }) {
+                    setSortable(BugStats.Sort.MOST_AFFECTED_ENGINE_COUNT)
+                    setCaption(Messages.MOST_AFFECTED_ENGINE)
+                    flexGrow = 0
+                    width = "180px"
+                }
+            }
+            
+            column(InstantRenderer { it.latestReport }) {
+                setSortable(BugStats.Sort.LATEST_REPORT)
+                setCaption(Messages.LATEST_REPORT)
+                sort(GridSortOrder.desc(this).build())
+                flexGrow = 0
+                width = "150px"
+            }
+            
             column(ComponentRenderer { bug: BugStats -> BugSolvedVersionSelect(appId, bug, versions, bugRepository) }) {
                 setSortable(BugStats.Sort.SOLVED_VERSION_CODE)
                 setFilterableToggle(BugStats.Filter.IS_NOT_SOLVED_OR_REGRESSION, true, Messages.HIDE_SOLVED)
                 setCaption(Messages.SOLVED)
+                flexGrow = 0
+                width = "150px"
             }
+            
             addOnClickNavigation(ReportBugTab::class.java) { BugView.getNavigationParams(appId, it.id) }
         }
+        
         if (SecurityUtils.hasPermission(appId, Permission.Level.EDIT)) {
             val mergeButton = Translatable.createButton(Messages.MERGE_BUGS) {
                 val selectedItems: List<BugStats> = gridView.grid.selectedItems.toList()
