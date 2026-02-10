@@ -16,6 +16,7 @@
 package com.faendir.acra.ui.view.app.tabs
 
 import com.faendir.acra.i18n.Messages
+import com.vdurmont.semver4j.Semver
 import com.faendir.acra.navigation.RouteParams
 import com.faendir.acra.navigation.View
 import com.faendir.acra.persistence.bug.BugRepository
@@ -70,8 +71,24 @@ class BugAppTab(
             }
             
             val versions = versionRepository.getVersionNames(appId)
+            val versionMap = versions.associateBy { it.code to it.flavor }
+            
             column(VersionRenderer(versions) { it.latestVersionKey }) {
-                setSortable(BugStats.Sort.LATEST_VERSION_CODE)
+                setComparator { bug1, bug2 ->
+                    val v1 = versionMap[bug1.latestVersionKey.code to bug1.latestVersionKey.flavor]
+                    val v2 = versionMap[bug2.latestVersionKey.code to bug2.latestVersionKey.flavor]
+                    
+                    if (v1 == null || v2 == null) {
+                        bug1.latestVersionKey.code.compareTo(bug2.latestVersionKey.code)
+                    } else {
+                        try {
+                            Semver(v1.name, Semver.SemverType.LOOSE)
+                                .compareTo(Semver(v2.name, Semver.SemverType.LOOSE))
+                        } catch (e: Exception) {
+                            bug1.latestVersionKey.code.compareTo(bug2.latestVersionKey.code)
+                        }
+                    }
+                }
                 setFilterableIs(versions, { it.name }, { BugStats.Filter.LATEST_VERSION(it.code, it.flavor) }, Messages.APP_VERSION)
                 setCaption(Messages.LATEST_VERSION)
                 flexGrow = 0
