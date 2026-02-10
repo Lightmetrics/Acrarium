@@ -30,6 +30,7 @@ dependencies {
     implementation(springLibs.spring.springBootStarterMail)
     implementation(springLibs.spring.springBootStarterActuator)
     implementation(springLibs.spring.springBootStarterJooq)
+    implementation("com.vdurmont:semver4j:3.1.0")
     implementation(vaadinLibs.vaadin.vaadin)
     implementation(vaadinLibs.vaadin.vaadinSpringBootStarter)
     implementation(springLibs.mysql.mysqlConnectorJ)
