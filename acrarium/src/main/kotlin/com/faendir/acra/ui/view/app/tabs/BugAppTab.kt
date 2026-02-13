@@ -98,6 +98,7 @@ class BugAppTab(
             column({ it.affectedInstallations }) {
                 setSortable(BugStats.Sort.AFFECTED_INSTALLATIONS)
                 setCaption(Messages.AFFECTED_INSTALLATIONS)
+                sort(GridSortOrder.desc(this).build())
                 flexGrow = 0
                 width = "180px"
             }
@@ -144,7 +145,6 @@ class BugAppTab(
             column(InstantRenderer { it.latestReport }) {
                 setSortable(BugStats.Sort.LATEST_REPORT)
                 setCaption(Messages.LATEST_REPORT)
-                sort(GridSortOrder.desc(this).build())
                 flexGrow = 0
                 width = "150px"
             }
