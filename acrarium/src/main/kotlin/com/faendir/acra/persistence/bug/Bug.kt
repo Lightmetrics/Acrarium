@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022-2023 Lukas Morawietz (https://github.com/F43nd1r)
+ * (C) Copyright 2022-2026 Lukas Morawietz (https://github.com/F43nd1r)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,12 @@ data class Bug(
     override val solvedVersionKey: VersionKey?,
     override val latestVersionKey: VersionKey,
     val affectedInstallations: Int,
+    val affectedVersions: Int,                   
+    val mostAffectedVersionKey: VersionKey?,      
+    val mostAffectedVersionCount: Int,
+    val affectedEngines: Int,
+    val mostAffectedEngine: String?,
+    val mostAffectedEngineCount: Int          
 ) : BugVersionInfo {
 
     @ConstructorProperties
@@ -72,6 +78,13 @@ data class Bug(
         latestVersionCode: Int,
         latestVersionFlavor: String,
         affectedInstallations: Int,
+        affectedVersions: Int,                           
+        mostAffectedVersionCode: Int?,                   
+        mostAffectedVersionFlavor: String?,              
+        mostAffectedVersionCount: Int,
+        affectedEngines: Int,
+        mostAffectedEngine: String?,
+        mostAffectedEngineCount: Int                  
     ) : this(
         id = id,
         title = title,
@@ -80,7 +93,14 @@ data class Bug(
         latestReport = latestReport,
         solvedVersionKey = if (solvedVersionCode != null && solvedVersionFlavor != null) VersionKey(solvedVersionCode, solvedVersionFlavor) else null,
         latestVersionKey = VersionKey(latestVersionCode, latestVersionFlavor),
-        affectedInstallations = affectedInstallations
+        affectedInstallations = affectedInstallations,
+        affectedVersions = affectedVersions,             
+        mostAffectedVersionKey = if (mostAffectedVersionCode != null && mostAffectedVersionFlavor != null)
+            VersionKey(mostAffectedVersionCode, mostAffectedVersionFlavor) else null,   
+        mostAffectedVersionCount = mostAffectedVersionCount,
+                affectedEngines = affectedEngines,
+        mostAffectedEngine = mostAffectedEngine,
+        mostAffectedEngineCount = mostAffectedEngineCount 
     )
 }
 
@@ -125,6 +145,12 @@ data class BugStats(
     val latestReport: Instant,
     override val solvedVersionKey: VersionKey?,
     val affectedInstallations: Int,
+    val affectedVersions: Int,                   
+    val mostAffectedVersionKey: VersionKey?,      
+    val mostAffectedVersionCount: Int,
+    val affectedEngines: Int,
+    val mostAffectedEngine: String?,
+    val mostAffectedEngineCount: Int,   
 ) : BugVersionInfo {
     @ConstructorProperties
     constructor(
@@ -137,6 +163,13 @@ data class BugStats(
         solvedVersionCode: Int?,
         solvedVersionFlavor: String?,
         affectedInstallations: Int,
+        affectedVersions: Int,                           
+        mostAffectedVersionCode: Int?,                   
+        mostAffectedVersionFlavor: String?,              
+        mostAffectedVersionCount: Int,
+        affectedEngines: Int,
+        mostAffectedEngine: String?,
+        mostAffectedEngineCount: Int,   
     ) : this(
         id = id,
         title = title,
@@ -144,7 +177,14 @@ data class BugStats(
         latestVersionKey = VersionKey(latestVersionCode, latestVersionFlavor),
         latestReport = latestReport,
         solvedVersionKey = if (solvedVersionCode != null && solvedVersionFlavor != null) VersionKey(solvedVersionCode, solvedVersionFlavor) else null,
-        affectedInstallations = affectedInstallations
+        affectedInstallations = affectedInstallations,
+        affectedVersions = affectedVersions,             
+        mostAffectedVersionKey = if (mostAffectedVersionCode != null && mostAffectedVersionFlavor != null)
+            VersionKey(mostAffectedVersionCode, mostAffectedVersionFlavor) else null,  
+        mostAffectedVersionCount = mostAffectedVersionCount,
+        affectedEngines = affectedEngines,
+        mostAffectedEngine = mostAffectedEngine,
+        mostAffectedEngineCount = mostAffectedEngineCount,
     )
 
     sealed class Filter(override val condition: Condition) : FilterDefinition {
@@ -163,5 +203,9 @@ data class BugStats(
         LATEST_REPORT(BUG.LATEST_REPORT),
         SOLVED_VERSION_CODE(BUG.SOLVED_VERSION_CODE),
         AFFECTED_INSTALLATIONS(BUG.AFFECTED_INSTALLATIONS),
+        AFFECTED_VERSIONS(BUG.AFFECTED_VERSIONS),                     
+        MOST_AFFECTED_VERSION_COUNT(BUG.MOST_AFFECTED_VERSION_COUNT),
+        AFFECTED_ENGINES(BUG.AFFECTED_ENGINES),
+        MOST_AFFECTED_ENGINE_COUNT(BUG.MOST_AFFECTED_ENGINE_COUNT), 
     }
 }

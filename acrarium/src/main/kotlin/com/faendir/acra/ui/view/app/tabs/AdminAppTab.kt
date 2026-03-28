@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2023 Lukas Morawietz (https://github.com/F43nd1r)
+ * (C) Copyright 2018-2026 Lukas Morawietz (https://github.com/F43nd1r)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,17 @@ import com.faendir.acra.ui.view.app.AppView
 import com.faendir.acra.ui.view.app.tabs.admincards.*
 import com.vaadin.flow.router.Route
 
+
 @View
 @Route(value = "admin", layout = AppView::class)
 class AdminAppTab : SpringComposite<CardView<AdminCard>>() {
     init {
-        content.add(VersionAppAdminCard::class, NotificationAppAdminCard::class, ExportAppAdminCard::class, CustomColumnAppAdminCard::class, DangerAppAdminCard::class)
+        content.apply {
+            add(ExportAppAdminCard::class)
+            add(CustomColumnAppAdminCard::class)
+            add(DangerAppAdminCard::class)
+            add(NotificationAppAdminCard::class)
+            add(VersionAppAdminCard::class)
+        }
     }
 }

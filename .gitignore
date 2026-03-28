@@ -5,6 +5,10 @@
 *.css*
 local.properties
 
+# Local environment config
+acrarium/src/main/resources/application.properties
+
+
 
 ### STS ###
 .apt_generated

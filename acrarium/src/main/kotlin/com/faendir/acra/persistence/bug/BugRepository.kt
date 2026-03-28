@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022-2023 Lukas Morawietz (https://github.com/F43nd1r)
+ * (C) Copyright 2022-2026 Lukas Morawietz (https://github.com/F43nd1r)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,11 +168,18 @@ class BugRepository(
                 BUG.SOLVED_VERSION_CODE,
                 BUG.SOLVED_VERSION_FLAVOR,
                 BUG.AFFECTED_INSTALLATIONS,
+                BUG.AFFECTED_VERSIONS,                   
+                BUG.MOST_AFFECTED_VERSION_CODE,          
+                BUG.MOST_AFFECTED_VERSION_FLAVOR,        
+                BUG.MOST_AFFECTED_VERSION_COUNT,
+                BUG.AFFECTED_ENGINES,
+                BUG.MOST_AFFECTED_ENGINE,
+                BUG.MOST_AFFECTED_ENGINE_COUNT,  
             )
                 .from(BUG)
                 .where(BUG.APP_ID.eq(appId).and(filters))
                 .orderBy(sort.asOrderFields())
-                .offset(offset)
+                .offset(offset) 
                 .limit(limit)
                 .fetchListInto<BugStats>()
                 .stream()

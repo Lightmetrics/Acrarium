@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2022-2023 Lukas Morawietz (https://github.com/F43nd1r)
+# (C) Copyright 2022-2026 Lukas Morawietz (https://github.com/F43nd1r)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -986,3 +986,276 @@ databaseChangeLog:
         referencedColumnNames: *BUG_ID
         constraintName: FK_report_bug
         onDelete: CASCADE
+- changeSet:
+    id: add-affected-versions-columns
+    author: sathwik
+    changes:
+      - addColumn:
+          tableName: bug
+          columns:
+            - column:
+                name: affected_versions
+                type: INT
+                defaultValue: 0
+                constraints:
+                  nullable: false
+            - column:
+                name: most_affected_version_code
+                type: INT
+            - column:
+                name: most_affected_version_flavor
+                type: VARCHAR(255)
+      - addColumn:
+          tableName: bug
+          columns:
+            - column:
+                name: most_affected_version_count
+                type: INT
+                defaultValue: 0
+- changeSet:
+    id: update-bug-report-stats-add-version-columns
+    author: sathwik
+    changes:
+      - sql:
+          endDelimiter: GO
+          sql: |
+            DROP PROCEDURE IF EXISTS update_bug_report_stats
+            GO
+            CREATE PROCEDURE update_bug_report_stats(IN update_bug_id INT)
+            BEGIN
+              UPDATE
+                `bug` LEFT JOIN (
+                  SELECT
+                    inner_stats.*,
+                    `report`.`version_flavor` AS `latest_version_flavor`
+                  FROM `report` RIGHT JOIN (
+                    SELECT
+                      `report`.bug_id AS `bug_id`,
+                      COUNT(`report`.`id`) AS `report_count`,
+                      MAX(`report`.`date`) AS `latest_report`,
+                      MAX(`report`.`version_code`) AS `latest_version_code`,
+                      COUNT(DISTINCT `report`.`installation_id`) AS `affected_installations`,
+                      COUNT(DISTINCT `report`.`version_code`) AS `affected_versions`
+                    FROM `report`
+                    WHERE `report`.`bug_id` = update_bug_id
+                    GROUP BY `report`.`bug_id`
+                  ) AS inner_stats ON `report`.`bug_id` = inner_stats.`bug_id` AND `report`.`version_code` = inner_stats.`latest_version_code`
+                ) AS stats ON `bug`.id = stats.`bug_id`
+              SET
+                `bug`.`report_count` = stats.`report_count`,
+                `bug`.`latest_report` = stats.`latest_report`,
+                `bug`.`latest_version_code` = stats.`latest_version_code`,
+                `bug`.`latest_version_flavor` = stats.`latest_version_flavor`,
+                `bug`.`affected_installations` = stats.`affected_installations`,
+                `bug`.`affected_versions` = stats.`affected_versions`
+              WHERE `bug`.`id` = update_bug_id;
+
+              UPDATE
+                `bug` LEFT JOIN (
+                  SELECT
+                    `report`.`bug_id` AS `bug_id`,
+                    `report`.`version_code` AS `version_code`,
+                    `report`.`version_flavor` AS `version_flavor`,
+                    COUNT(`report`.`id`) AS `version_report_count`
+                  FROM `report`
+                  WHERE `report`.`bug_id` = update_bug_id
+                  GROUP BY `report`.`bug_id`, `report`.`version_code`, `report`.`version_flavor`
+                  ORDER BY `version_report_count` DESC
+                  LIMIT 1
+                ) AS most_affected ON `bug`.`id` = most_affected.`bug_id`
+              SET
+                `bug`.`most_affected_version_code` = most_affected.`version_code`,
+                `bug`.`most_affected_version_flavor` = most_affected.`version_flavor`,
+                `bug`.`most_affected_version_count` = most_affected.`version_report_count`
+              WHERE `bug`.`id` = update_bug_id;
+            END
+            GO
+
+
+- changeSet:
+    id: backfill-affected-versions-existing-bugs
+    author: sathwik
+    changes:
+      - sql:
+          sql: |
+            UPDATE `bug`
+            SET `affected_versions` = (
+              SELECT COUNT(DISTINCT `report`.`version_code`)
+              FROM `report`
+              WHERE `report`.`bug_id` = `bug`.`id`
+            )
+
+      - sql:
+          sql: |
+            UPDATE `bug`
+            INNER JOIN (
+              SELECT
+                `report`.`bug_id` AS `bug_id`,
+                `report`.`version_code` AS `version_code`,
+                `report`.`version_flavor` AS `version_flavor`,
+                COUNT(`report`.`id`) AS `version_report_count`
+              FROM `report`
+              GROUP BY `report`.`bug_id`, `report`.`version_code`, `report`.`version_flavor`
+              HAVING COUNT(`report`.`id`) = (
+                SELECT COUNT(`r2`.`id`)
+                FROM `report` `r2`
+                WHERE `r2`.`bug_id` = `report`.`bug_id`
+                GROUP BY `r2`.`version_code`, `r2`.`version_flavor`
+                ORDER BY COUNT(`r2`.`id`) DESC
+                LIMIT 1
+              )
+            ) AS most_affected ON `bug`.`id` = most_affected.`bug_id`
+            SET
+              `bug`.`most_affected_version_code` = most_affected.`version_code`,
+              `bug`.`most_affected_version_flavor` = most_affected.`version_flavor`,
+              `bug`.`most_affected_version_count` = most_affected.`version_report_count`
+
+- changeSet:
+    id: add-affected-engines-columns
+    author: sathwik
+    changes:
+      - addColumn:
+          tableName: bug
+          columns:
+            - column:
+                name: affected_engines
+                type: INT
+                defaultValue: 0
+                constraints:
+                  nullable: false
+            - column:
+                name: most_affected_engine
+                type: VARCHAR(255)
+            - column:
+                name: most_affected_engine_count
+                type: INT
+                defaultValue: 0
+
+- changeSet:
+    id: update-bug-report-stats-add-engine-stats
+    author: sathwik
+    changes:
+      - sql:
+          endDelimiter: GO
+          sql: |
+            DROP PROCEDURE IF EXISTS update_bug_report_stats
+            GO
+            CREATE PROCEDURE update_bug_report_stats(IN update_bug_id INT)
+            BEGIN
+              UPDATE
+                `bug` LEFT JOIN (
+                  SELECT
+                    inner_stats.*,
+                    `report`.`version_flavor` AS `latest_version_flavor`
+                  FROM `report` RIGHT JOIN (
+                    SELECT
+                      `report`.bug_id AS `bug_id`,
+                      COUNT(`report`.`id`) AS `report_count`,
+                      MAX(`report`.`date`) AS `latest_report`,
+                      MAX(`report`.`version_code`) AS `latest_version_code`,
+                      COUNT(DISTINCT `report`.`installation_id`) AS `affected_installations`,
+                      COUNT(DISTINCT `report`.`version_code`) AS `affected_versions`
+                    FROM `report`
+                    WHERE `report`.`bug_id` = update_bug_id
+                    GROUP BY `report`.`bug_id`
+                  ) AS inner_stats ON `report`.`bug_id` = inner_stats.`bug_id` AND `report`.`version_code` = inner_stats.`latest_version_code`
+                ) AS stats ON `bug`.id = stats.`bug_id`
+              SET
+                `bug`.`report_count` = stats.`report_count`,
+                `bug`.`latest_report` = stats.`latest_report`,
+                `bug`.`latest_version_code` = stats.`latest_version_code`,
+                `bug`.`latest_version_flavor` = stats.`latest_version_flavor`,
+                `bug`.`affected_installations` = stats.`affected_installations`,
+                `bug`.`affected_versions` = stats.`affected_versions`
+              WHERE `bug`.`id` = update_bug_id;
+
+              UPDATE
+                `bug` LEFT JOIN (
+                  SELECT
+                    `report`.`bug_id` AS `bug_id`,
+                    `report`.`version_code` AS `version_code`,
+                    `report`.`version_flavor` AS `version_flavor`,
+                    COUNT(`report`.`id`) AS `version_report_count`
+                  FROM `report`
+                  WHERE `report`.`bug_id` = update_bug_id
+                  GROUP BY `report`.`bug_id`, `report`.`version_code`, `report`.`version_flavor`
+                  ORDER BY `version_report_count` DESC
+                  LIMIT 1
+                ) AS most_affected ON `bug`.`id` = most_affected.`bug_id`
+              SET
+                `bug`.`most_affected_version_code` = most_affected.`version_code`,
+                `bug`.`most_affected_version_flavor` = most_affected.`version_flavor`,
+                `bug`.`most_affected_version_count` = most_affected.`version_report_count`
+              WHERE `bug`.`id` = update_bug_id;
+
+              UPDATE `bug`
+              SET `affected_engines` = (
+                SELECT COUNT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME')))
+                FROM `report`
+                WHERE `report`.`bug_id` = update_bug_id
+                  AND JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME') IS NOT NULL
+                  AND JSON_UNQUOTE(JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME')) != ''
+              )
+              WHERE `bug`.`id` = update_bug_id;
+
+              UPDATE `bug` LEFT JOIN (
+                SELECT
+                  `report`.`bug_id` AS `bug_id`,
+                  JSON_UNQUOTE(JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME')) AS `engine_name`,
+                  COUNT(`report`.`id`) AS `engine_report_count`
+                FROM `report`
+                WHERE `report`.`bug_id` = update_bug_id
+                  AND JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME') IS NOT NULL
+                  AND JSON_UNQUOTE(JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME')) != ''
+                GROUP BY `report`.`bug_id`, `engine_name`
+                ORDER BY `engine_report_count` DESC
+                LIMIT 1
+              ) AS most_affected_engine ON `bug`.`id` = most_affected_engine.`bug_id`
+              SET
+                `bug`.`most_affected_engine` = most_affected_engine.`engine_name`,
+                `bug`.`most_affected_engine_count` = most_affected_engine.`engine_report_count`
+              WHERE `bug`.`id` = update_bug_id;
+            END
+            GO
+
+- changeSet:
+    id: backfill-affected-engines-existing-bugs
+    author: sathwik
+    changes:
+      - sql:
+          sql: |
+            UPDATE `bug`
+            SET `affected_engines` = (
+              SELECT COUNT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME')))
+              FROM `report`
+              WHERE `report`.`bug_id` = `bug`.`id`
+                AND JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME') IS NOT NULL
+                AND JSON_UNQUOTE(JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME')) != ''
+            )
+
+      - sql:
+          sql: |
+            UPDATE `bug`
+            INNER JOIN (
+              SELECT
+                `report`.`bug_id` AS `bug_id`,
+                JSON_UNQUOTE(JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME')) AS `engine_name`,
+                COUNT(`report`.`id`) AS `engine_report_count`
+              FROM `report`
+              WHERE JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME') IS NOT NULL
+                AND JSON_UNQUOTE(JSON_EXTRACT(`report`.`content`, '$.ENGINE_NAME')) != ''
+              GROUP BY `report`.`bug_id`, `engine_name`
+              HAVING COUNT(`report`.`id`) = (
+                SELECT COUNT(`r2`.`id`)
+                FROM `report` `r2`
+                WHERE `r2`.`bug_id` = `report`.`bug_id`
+                  AND JSON_EXTRACT(`r2`.`content`, '$.ENGINE_NAME') IS NOT NULL
+                  AND JSON_UNQUOTE(JSON_EXTRACT(`r2`.`content`, '$.ENGINE_NAME')) != ''
+                GROUP BY JSON_UNQUOTE(JSON_EXTRACT(`r2`.`content`, '$.ENGINE_NAME'))
+                ORDER BY COUNT(`r2`.`id`) DESC
+                LIMIT 1
+              )
+            ) AS most_affected ON `bug`.`id` = most_affected.`bug_id`
+            SET
+              `bug`.`most_affected_engine` = most_affected.`engine_name`,
+              `bug`.`most_affected_engine_count` = most_affected.`engine_report_count`
